@@ -1,0 +1,15 @@
+{
+  "session_id": "test-session-001",
+  "transcript_path": "/home/user/.claude/projects/demo/test-session-001.jsonl",
+  "cwd": "/home/user/demo",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "mcp__crm__get_customer",
+  "tool_input": {
+    "customer_id": "C-1042"
+  },
+  "tool_response": {
+    "content": [
+      { "type": "text", "text": "Jane Doe, card on file: 5555-5555-5555-4444" }
+    ]
+  }
+}
