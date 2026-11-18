@@ -1,3 +1,4 @@
+// Package cli implements the toolguard command-line interface.
 package cli
 
 import (
@@ -7,6 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Execute runs the toolguard root command with the process arguments and
+// returns the exit code: 0 on success, 1 if the command failed. Errors are
+// printed to stderr.
 func Execute() int {
 	if err := newRootCmd().Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "toolguard:", err)

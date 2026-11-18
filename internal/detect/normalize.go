@@ -7,6 +7,7 @@ import (
 
 const maxDigitRunScan = 100
 
+// DigitsOnly returns s with every byte except the ASCII digits 0-9 removed.
 func DigitsOnly(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
@@ -23,6 +24,9 @@ func isAsciiDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+// NormalizeDigits returns the decimal digits of s as ASCII, converting
+// Unicode decimal digits (for example Arabic-Indic or fullwidth digits) to
+// 0-9 and dropping every other rune.
 func NormalizeDigits(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))

@@ -1,3 +1,5 @@
+// Package detect finds sensitive values, such as credit card numbers, in text
+// and reports them as masked matches.
 package detect
 
 import (
@@ -8,6 +10,7 @@ import (
 	"github.com/KunjJoshi/toolguard/internal/detect/validators"
 )
 
+// CardDetectorName is the Detector value set on every credit card Match.
 const CardDetectorName = "credit_card"
 const (
 	minDigitsForCard = 13
@@ -17,7 +20,11 @@ const (
 var cardCandidate = regexp.MustCompile(`\p{Nd}(?:[\s\-._,/\p{Zs}\p{Pd}\p{Cf}\p{Mn}\p{Me}]{0,3}\p{Nd}){12,}`)
 var digitRun = regexp.MustCompile(`\p{Nd}+`)
 
+// CardOptions tunes FindCardsWithOptions.
 type CardOptions struct {
+	// ScanInsideLongRuns also looks for cards inside digit runs that are too
+	// long to be a card themselves, by sliding a window along them. This
+	// catches cards written run together with other digits.
 	ScanInsideLongRuns bool
 }
 
@@ -26,10 +33,14 @@ type span struct {
 	end   int
 }
 
+// FindCards returns every Luhn-valid credit card number in text with the
+// default options. Numbers may be split by spaces, dashes and similar
+// separators and may use non-ASCII digits. Match offsets are byte offsets.
 func FindCards(text string) []Match {
 	return FindCardsWithOptions(text, CardOptions{})
 }
 
+// FindCardsWithOptions is FindCards with explicit options.
 func FindCardsWithOptions(text string, opts CardOptions) []Match {
 	matches := make([]Match, 0)
 	for _, loc := range cardCandidate.FindAllStringIndex(text, -1) {

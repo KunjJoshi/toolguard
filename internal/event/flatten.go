@@ -6,11 +6,16 @@ import (
 	"strconv"
 )
 
+// Field is one scalar value from a JSON document and its path, written as
+// dotted keys and [index] for arrays (for example "content[0].text").
 type Field struct {
 	Path  string
 	Value string
 }
 
+// Flatten walks a decoded JSON value and returns every string and
+// json.Number in it as a Field, with object keys visited in sorted order.
+// Booleans and nulls are skipped. A top-level scalar has an empty Path.
 func Flatten(v any) []Field {
 	fields := make([]Field, 0)
 	flattenInto("", v, &fields)
@@ -46,6 +51,7 @@ func indexPath(parent string, i int) string {
 	return parent + "[" + strconv.Itoa(i) + "]"
 }
 
+// SortedKeys returns the keys of obj in ascending order.
 func SortedKeys(obj map[string]any) []string {
 	keys := make([]string, 0, len(obj))
 	for k := range obj {

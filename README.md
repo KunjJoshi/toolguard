@@ -1,10 +1,24 @@
 # ToolGuard
 
-Falco-style guardrails for AI agent tool calls. ToolGuard runs as a Claude Code hook, inspects every tool call deterministically, and blocks or redacts credentials and private data before they leak.
+Falco-style guardrails for AI agents. ToolGuard is a general-purpose scanner for suspicious activity in what an agent does and thinks:
 
-> **Status:** early development (Phase 0). The CLI can parse Claude Code hook payloads and detect credit card numbers. It does not block anything yet: the rule engine, rule packs and hook integration arrive in later phases.
+- **MCP and built-in tool calls:** the arguments an agent sends to a tool.
+- **Tool outputs:** what comes back from those tools before the agent acts on it.
+- **Agent thinking traces:** the agent's reasoning, checked for signs of suspicious intent.
 
-## What works today
+It installs directly into Claude Code as a hook, inspects every event deterministically, and blocks or redacts credentials, private data and other suspicious content before it leaks.
+
+> **Status:** Phase 0 is complete. Its first module, the **Card Detector**, finds credit card numbers in tool calls and tool outputs, and the `toolguard eval` command runs it on saved Claude Code hook payloads. Later phases add the rule engine, more detectors (secrets, PII), rule packs and thinking-trace scanning.
+
+## Modules
+
+| Module | Scans | Status |
+| --- | --- | --- |
+| Card Detector | Tool arguments and tool outputs | Done (Phase 0) |
+| Rule engine and rule packs (secrets, PII) | Tool arguments and tool outputs | Planned |
+| Thinking-trace scanner | Agent reasoning | Planned |
+
+## What Phase 0 delivers
 
 - **Hook payload parsing:** reads Claude Code `PreToolUse` (request) and `PostToolUse` (response) payloads and turns them into a normalized event. MCP tool names such as `mcp__mail__send_email` are split into server (`mail`) and tool (`send_email`).
 - **Field flattening:** every string in the tool input and tool response is scanned, with its path recorded (for example `args.body` or `result.content[0].text`).
@@ -36,6 +50,22 @@ To install it on your `PATH` instead:
 ```sh
 go install github.com/KunjJoshi/toolguard/cmd/toolguard@latest
 ```
+
+## Install into Claude Code
+
+ToolGuard can be installed directly into Claude Code. The installer registers it as a `PreToolUse` and `PostToolUse` hook in your Claude Code settings, so every tool call and tool output is scanned automatically:
+
+```sh
+toolguard install
+```
+
+To remove the hooks again:
+
+```sh
+toolguard uninstall
+```
+
+Restart Claude Code (or start a new session) after installing or removing so it picks up the change.
 
 ## Usage
 
@@ -121,11 +151,11 @@ internal/
   cli/                    Cobra commands: eval, version
   adapters/claudecode/    Claude Code hook payload parsing and validation
   event/                  Normalized event model, field flattening, tool name splitting
-  detect/                 Detectors, normalization, masking, match type
+  detect/                 Detectors (Card Detector), normalization, masking, match type
     validators/           Luhn check and card brand rules
   engine/ rules/ cond/    Rule engine (planned)
   config/ bundle/ audit/  Configuration, rule bundles, audit log (planned)
-  integrate/claudecode/   Hook installation for Claude Code (planned)
+  integrate/claudecode/   Installs and removes ToolGuard's hooks in Claude Code
   ruletest/               Rule test harness (planned)
 pkg/toolguard/            Public Go API (planned)
 rules/                    JSON rule packs (planned)

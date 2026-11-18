@@ -1,7 +1,10 @@
+// Package validators holds checksum and format checks used by detectors.
 package validators
 
+// CardBrand names a payment card network.
 type CardBrand string
 
+// Card brands recognised by IsPlausibleCard.
 const (
 	CardBrandVisa       CardBrand = "visa"
 	CardBrandAmex       CardBrand = "amex"
@@ -68,6 +71,9 @@ var cardBrands = []brandSpec{
 	},
 }
 
+// IsPlausibleCard reports whether digits (ASCII digits only) has a known
+// brand's prefix and a length that brand allows, and returns the brand. It
+// does not run the Luhn check; call Luhn for that.
 func IsPlausibleCard(digits string) (CardBrand, bool) {
 	if len(digits) < minCardLength || len(digits) > maxCardLength {
 		return "", false

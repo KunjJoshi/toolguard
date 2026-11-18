@@ -2,6 +2,8 @@ package validators
 
 const minLuhnLength = 2
 
+// Luhn reports whether digits passes the Luhn (mod 10) checksum. It returns
+// false for strings shorter than 2 or containing anything but ASCII digits.
 func Luhn(digits string) bool {
 	if len(digits) < minLuhnLength {
 		return false

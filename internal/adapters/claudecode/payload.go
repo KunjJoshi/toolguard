@@ -1,3 +1,4 @@
+// Package claudecode converts Claude Code hook payloads into ToolGuard events.
 package claudecode
 
 import (
@@ -10,13 +11,16 @@ import (
 	"github.com/KunjJoshi/toolguard/internal/event"
 )
 
+// Hook event names that ToolGuard accepts in a payload's hook_event_name.
 const (
 	HookPreToolUse  = "PreToolUse"
 	HookPostToolUse = "PostToolUse"
 )
 
+// MaxPayloadBytes is the largest hook payload ParsePayload will read (16 MiB).
 const MaxPayloadBytes = 16 << 20
 
+// Errors returned by ParsePayload and Payload.Validate.
 var (
 	ErrPayloadTooLarge      = errors.New("hook payload exceeds size limit")
 	ErrInvalidJSON          = errors.New("hook payload is not valid JSON")
@@ -24,6 +28,8 @@ var (
 	ErrMissingToolName      = errors.New("hook payload has no tool_name")
 )
 
+// Payload is the JSON object Claude Code sends to a PreToolUse or PostToolUse
+// hook on stdin. ToolResponse is only set for PostToolUse.
 type Payload struct {
 	SessionID      string `json:"session_id"`
 	TranscriptPath string `json:"transcript_path"`
@@ -34,6 +40,10 @@ type Payload struct {
 	ToolResponse   any    `json:"tool_response"`
 }
 
+// ParsePayload reads one hook payload from r, decodes it (keeping numbers as
+// json.Number) and validates it. It fails with ErrPayloadTooLarge if r holds
+// more than MaxPayloadBytes, with ErrInvalidJSON if the JSON is malformed, and
+// with any error from Validate.
 func ParsePayload(r io.Reader) (Payload, error) {
 	raw, err := io.ReadAll(io.LimitReader(r, MaxPayloadBytes+1))
 	if err != nil {
@@ -60,6 +70,8 @@ func ParsePayload(r io.Reader) (Payload, error) {
 	return p, nil
 }
 
+// Validate reports whether p is a supported PreToolUse or PostToolUse payload
+// with a tool name. It returns ErrUnsupportedHookEvent or ErrMissingToolName.
 func (p Payload) Validate() error {
 	if p.HookEventName != HookPostToolUse && p.HookEventName != HookPreToolUse {
 		return fmt.Errorf("%w: %q", ErrUnsupportedHookEvent, p.HookEventName)
@@ -72,6 +84,9 @@ func (p Payload) Validate() error {
 	return nil
 }
 
+// ToEvent converts p into a normalized event: the tool name is split into MCP
+// server and tool, the tool input is flattened into ArgFields, and for
+// PostToolUse the tool response is flattened into ResultFields.
 func (p Payload) ToEvent() event.Event {
 	server, tool := event.SplitToolName(p.ToolName)
 
