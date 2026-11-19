@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "PreToolUse":  [{ "matcher": "*", "hooks": [{ "type": "command", "command": "/Users/kunjjoshi/go/bin/toolguard hook", "timeout": 10 }] }],
+    "PostToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "/Users/kunjjoshi/go/bin/toolguard hook", "timeout": 10 }] }]
+  }
+}
